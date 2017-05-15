@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.microsoft.projectoxford.emotion.EmotionServiceClient;
 import com.microsoft.projectoxford.emotion.EmotionServiceRestClient;
@@ -28,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
 
     public EmotionServiceClient emotionServiceClient = new EmotionServiceRestClient("cb458268faf3498b80595f610d5f02c3");
     ImageView imageViewFromC;
+    TextView errorText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +40,8 @@ public class MainActivity extends AppCompatActivity {
 
         final ImageView imageView = (ImageView)findViewById(R.id.imageView);
         imageView.setImageBitmap(mBitmap);
+
+        errorText = (TextView)findViewById(R.id.editText);
 
         Button btnPRocess = (Button)findViewById(R.id.btnEmotion);
 
@@ -53,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View view){
+                errorText.setText("");
                 Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 startActivityForResult(intent,0);
             }
@@ -62,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-
+                errorText.setText("");
 
                 AsyncTask<InputStream,String,List<RecognizeResult>> emotionTask= new AsyncTask<InputStream,String,List<RecognizeResult>>()
                 {
@@ -88,11 +93,17 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     protected void onPostExecute(List<RecognizeResult> recognizeResults) {
                         mDialog.dismiss();
-                        for(RecognizeResult res : recognizeResults)
-                        {
-                            String status = getEmo(res);
-                            imageView.setImageBitmap(ImageHelper.drawRectOnBitmap(mBitmap,res.faceRectangle,status));
+                        if(recognizeResults == null){
+                            errorText.setText("Emotion API not responding");
                         }
+                        else{
+                            for(RecognizeResult res : recognizeResults)
+                            {
+                                String status = getEmo(res);
+                                imageView.setImageBitmap(ImageHelper.drawRectOnBitmap(mBitmap,res.faceRectangle,status));
+                            }
+                        }
+
                     }
 
                     @Override
