@@ -27,7 +27,9 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    public EmotionServiceClient emotionServiceClient = new EmotionServiceRestClient("cb458268faf3498b80595f610d5f02c3");
+    Bitmap mBitmap;
+
+    public EmotionServiceClient emotionServiceClient = new EmotionServiceRestClient("13dc36ab38ac456ea8de42443556e789");
     ImageView imageViewFromC;
     TextView errorText;
 
@@ -36,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        final Bitmap mBitmap = BitmapFactory.decodeResource(getResources(),R.drawable.surprise);
+        mBitmap = BitmapFactory.decodeResource(getResources(),R.drawable.surprise);
 
         final ImageView imageView = (ImageView)findViewById(R.id.imageView);
         imageView.setImageBitmap(mBitmap);
@@ -44,11 +46,6 @@ public class MainActivity extends AppCompatActivity {
         errorText = (TextView)findViewById(R.id.editText);
 
         Button btnPRocess = (Button)findViewById(R.id.btnEmotion);
-
-        //Convert image to stream
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        mBitmap.compress(Bitmap.CompressFormat.JPEG,100,outputStream);
-        final ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
 
         Button btnCamera = (Button)findViewById(R.id.btnCamera);
         imageViewFromC = (ImageView)findViewById(R.id.imageView);
@@ -66,6 +63,10 @@ public class MainActivity extends AppCompatActivity {
         btnPRocess.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                mBitmap.compress(Bitmap.CompressFormat.JPEG,100,outputStream);
+                final ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
 
                 errorText.setText("");
 
@@ -100,6 +101,7 @@ public class MainActivity extends AppCompatActivity {
                             for(RecognizeResult res : recognizeResults)
                             {
                                 String status = getEmo(res);
+                                errorText.setText("Emotion Detected: " + status);
                                 imageView.setImageBitmap(ImageHelper.drawRectOnBitmap(mBitmap,res.faceRectangle,status));
                             }
                         }
@@ -119,8 +121,8 @@ public class MainActivity extends AppCompatActivity {
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
         super.onActivityResult(requestCode, resultCode, data);
-        Bitmap bitmap = (Bitmap)data.getExtras().get("data");
-        imageViewFromC.setImageBitmap(bitmap);
+        mBitmap = (Bitmap)data.getExtras().get("data");
+        imageViewFromC.setImageBitmap(mBitmap);
     }
 
     private String getEmo(RecognizeResult res) {
